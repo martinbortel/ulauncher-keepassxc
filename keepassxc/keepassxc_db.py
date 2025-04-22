@@ -4,7 +4,7 @@ Wrapper around the KeePassXC CLI
 Features:
     - Keep track of passphrase unlock and inactivity lock timeouts
     - Search entries
-    - Retrieve entry details (username, password, notes, URL)
+    - Retrieve entry details (username, password, totp, notes, URL)
 """
 from typing import List, Dict, Tuple
 import subprocess
@@ -124,7 +124,7 @@ class KeepassxcDatabase:
         if self.is_passphrase_needed():
             raise KeepassxcLockedDbError()
 
-        (err, out) = self.run_cli("locate", "-q", self.path, query)
+        (err, out) = self.run_cli("search", "-q", self.path, query)
         if err:
             if "No results for that" in err:
                 return []
@@ -142,6 +142,7 @@ class KeepassxcDatabase:
         Retrieve details of the given entry:
         - UserName
         - Password
+        - TOTP
         - URL
         - Notes
 
@@ -152,8 +153,11 @@ class KeepassxcDatabase:
             raise KeepassxcLockedDbError()
 
         attrs = dict()
-        for attr in ["UserName", "Password", "URL", "Notes"]:
-            (err, out) = self.run_cli("show", "-q", "-a", attr, self.path, f"/{entry}")
+        for attr in ["UserName", "Password", "TOTP", "URL", "Notes"]:
+            if attr == "TOTP":
+                (noerr, out) = self.run_cli("show", "-q", "-t", self.path, f"/{entry}")
+            else:
+                (err, out) = self.run_cli("show", "-q", "-a", attr, self.path, f"/{entry}")
             if err:
                 raise KeepassxcCliError(err)
             attrs[attr] = out.strip("\n")

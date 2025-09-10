@@ -171,7 +171,7 @@ def active_entry(details: Dict[str, str]) -> BaseAction:
                         {
                             "action": "show_notification",
                             "summary": "{} copied to the clipboard.".format(
-                                attr_nice.capitalize()
+                                attr_nice
                             ),
                         }
                     ),
